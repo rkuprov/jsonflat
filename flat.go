@@ -1,6 +1,9 @@
 package jsonflat
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 type flattened interface {
 	string() string
@@ -53,7 +56,11 @@ func flattenJSON(m map[string]interface{}) *JF {
 				jf.data[k].append(val)
 			}
 		case []interface{}:
-			jf.data[k], _ = flattenSlice(v.([]interface{}))
+			if _, ok := jf.data[k]; !ok {
+				jf.data[k] = flattenSlice(val)
+				continue
+			}
+			jf.data[k] = jf.data[k].append(flattenSlice(v.([]interface{})))
 		default:
 			return nil
 		}
@@ -86,8 +93,11 @@ func flattenSlice(s []interface{}) flattened {
 			ret = append(ret, v.(bool))
 		}
 		return ret
-	case []interface{}:
-
+	default:
+		ret := make(flatString, len(s))
+		for _, v := range s {
+			ret.append(fmt.Sprintf("%v", v))
+		}
 	}
 
 	return nil
