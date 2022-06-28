@@ -46,11 +46,11 @@ func flattenJSON(m map[string]interface{}) *JF {
 			jf.data[k] = jf.data[k].append(val)
 		case map[string]interface{}:
 			for k, val := range flattenJSON(val).data {
-				if _, ok := jf.data[k]; ok {
-					jf.data[k].append(val)
+				if _, ok := jf.data[k]; !ok {
+					jf.data[k] = val
 					continue
 				}
-				jf.data[k] = val
+				jf.data[k].append(val)
 			}
 		case []interface{}:
 			jf.data[k], _ = flattenSlice(v.([]interface{}))
@@ -58,5 +58,37 @@ func flattenJSON(m map[string]interface{}) *JF {
 			return nil
 		}
 	}
+
 	return jf
+}
+
+func flattenSlice(s []interface{}) flattened {
+	if len(s) == 0 {
+		return nil
+	}
+
+	switch s[0].(type) {
+	case string:
+		ret := make(flatString, len(s))
+		for _, v := range s {
+			ret = append(ret, v.(string))
+		}
+		return ret
+	case float64:
+		ret := make(flatFloat, len(s))
+		for _, v := range s {
+			ret = append(ret, v.(float64))
+		}
+		return ret
+	case bool:
+		ret := make(flatBool, len(s))
+		for _, v := range s {
+			ret = append(ret, v.(bool))
+		}
+		return ret
+	case []interface{}:
+
+	}
+
+	return nil
 }
