@@ -19,14 +19,32 @@ type JF struct {
 func NewJSONFlat(b []byte) (*JF, error) {
 	m := make(map[string]interface{})
 	err := json.Unmarshal(b, &m)
-	if err == nil {
+	fmt.Println("map:", m)
+	if err != nil || m == nil {
 		return nil, err
 	}
 	return flattenJSON(m), nil
 }
 
+// GetString returns the value of the given key in the JF object.
+func (jf *JF) GetString(key string) string {
+	if v, ok := jf.data[key]; ok {
+		return v.string()
+	}
+	return ""
+}
+
+// Contains returns true if the JF object contains the given interface{}.
+func (jf *JF) Contains(str string) bool {
+	if _, ok := jf.data[str]; ok {
+		return true
+	}
+
+	return false
+}
+
 func flattenJSON(m map[string]interface{}) *JF {
-	jf := &JF{data: make(map[string]flattened)}
+	jf := JF{data: make(map[string]flattened)}
 	for k, v := range m {
 		switch val := v.(type) {
 		case string:
@@ -66,7 +84,7 @@ func flattenJSON(m map[string]interface{}) *JF {
 		}
 	}
 
-	return jf
+	return &jf
 }
 
 func flattenSlice(s []interface{}) flattened {
